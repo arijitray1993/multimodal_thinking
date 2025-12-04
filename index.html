@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Mull-Tokens: Modality-Agnostic Latent Thinking</title>
+  <meta name="description" content="Latent tokens for multimodal reasoning that improve spatial understanding">
+  <meta name="keywords" content="multimodal, reasoning, spatial understanding, latent thinking, MLM">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@300;400;500;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+      --secondary-color: #4a4a4a;
+      --border-color: #ddd;
+      --header-bg: #f8f9fa;
+      --highlight-bg: #e6f2ff;
+      --delta-bg: #f5f5f5;
+      --section-header-bg: #f0f4f8;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+    }
+    
+    .container-main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .paper-title {
+      font-family: 'Roboto Slab', serif;
+      font-size: 2.5rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    
+    .title-cursive {
+      font-family: 'Dancing Script', 'Brush Script MT', cursive;
+      font-weight: 600;
+      font-style: normal;
+      font-size: 1.15em;
+      margin-right: -0.05em;
+    }
+    
+    .title-bold {
+      font-family: 'Roboto Slab', serif;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    
+    .paper-title code {
+      font-size: 0.85em;
+      background-color: #f4f4f4;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .authors {
+      font-size: 1.15rem;
+      margin-bottom: 1.5rem;
+      color: #00b0d0;
+      line-height: 2;
+      font-weight: 400;
+      text-align: center;
+    }
+    
+    .authors a {
+      color: #00b0d0;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .authors a:hover {
+      color: #0099b8;
+    }
+    
+    .authors u {
+      text-decoration: none;
+    }
+    
+    .authors sup {
+      font-weight: 600;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    
+    .authors sup:not([class]) {
+      color: #666;
+    }
+    
+    /* Color-coded superscripts */
+    .sup-1 { color: #e91e63; } /* Pink */
+    .sup-2 { color: #4caf50; } /* Green */
+    .sup-3 { color: #ff9800; } /* Orange */
+    .sup-4 { color: #00bcd4; } /* Cyan */
+    
+    .affiliations {
+      font-size: 1rem;
+      color: #4a4a4a;
+      margin-bottom: 2rem;
+      line-height: 1.8;
+      font-weight: 400;
+      text-align: center;
+    }
+    
+    .affiliations .affiliation {
+      display: inline-block;
+      margin-right: 1.5rem;
+      margin-bottom: 0.2rem;
+    }
+    
+    .affiliations sup {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    
+    /* Match affiliation colors */
+    .aff-1 { color: #e91e63; }
+    .aff-2 { color: #4caf50; }
+    .aff-3 { color: #ff9800; }
+    .aff-4 { color: #00bcd4; }
+    
+    .paper-links {
+      margin-bottom: 2.5rem;
+    }
+    
+    .paper-links a {
+      display: inline-block;
+      margin: 0.3rem 0.5rem 0.3rem 0;
+      padding: 0.5rem 1rem;
+      background-color: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+    }
+    
+    .paper-links a:hover {
+      background-color: #555;
+    }
+    
+    .paper-links i {
+      margin-right: 0.4rem;
+    }
+    
+    .teaser-figure {
+      margin: 3rem -2rem;
+      text-align: center;
+    }
+    
+    .teaser-figure img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .teaser-figure video {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .teaser-caption {
+      font-size: 0.95rem;
+      color: var(--secondary-color);
+      margin-top: 1rem;
+      line-height: 1.6;
+      max-width: 100%;
+      padding: 0 2rem;
+    }
+    
+    .approach-figure {
+      margin: 2rem -2rem 3rem -2rem;
+      text-align: center;
+    }
+    
+    .approach-figure img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background-color: white;
+    }
+    
+    .approach-figure figcaption {
+      font-size: 0.95rem;
+      color: var(--secondary-color);
+      margin-top: 1rem;
+      line-height: 1.6;
+      max-width: 100%;
+      padding: 0 2rem;
+      text-align: left;
+    }
+    
+    .qualitative-figure {
+      margin: 2rem -2rem 3rem -2rem;
+      text-align: center;
+    }
+    
+    .qualitative-figure img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background-color: white;
+    }
+    
+    .qualitative-figure figcaption {
+      font-size: 0.95rem;
+      color: var(--secondary-color);
+      margin-top: 1rem;
+      line-height: 1.6;
+      max-width: 100%;
+      padding: 0 2rem;
+      text-align: left;
+    }
+    
+    .abstract {
+      background-color: var(--header-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 3rem;
+      line-height: 1.8;
+    }
+    
+    .abstract h2 {
+      font-family: 'Roboto Slab', serif;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .section-title {
+      font-family: 'Roboto Slab', serif;
+      font-size: 1.8rem;
+      font-weight: 500;
+      margin-top: 3rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+    
+    .subsection-title {
+      font-family: 'Roboto Slab', serif;
+      font-size: 1.3rem;
+      font-weight: 500;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: var(--text-color);
+    }
+    
+    /* Table Styling inspired by SIMS-V */
+    .responsive-table-wrapper {
+      overflow-x: auto;
+      margin: 2rem 0;
+    }
+    
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+      margin: 1em 0;
+    }
+    
+    .results-table th,
+    .results-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    
+    .results-table thead {
+      border-bottom: 2px solid #333;
+    }
+    
+    .results-table thead th {
+      font-weight: 600;
+      background-color: var(--header-bg);
+      padding: 12px;
+    }
+    
+    .results-table .compact-cell {
+      padding: 6px 8px;
+    }
+    
+    .results-table .compact-cell-8 {
+      padding: 6px 12px;
+    }
+    
+    .results-table .center {
+      text-align: center;
+    }
+    
+    .results-table .left {
+      text-align: left;
+    }
+    
+    .results-table .section-header {
+      background-color: var(--section-header-bg);
+      border-top: 2px solid #333;
+      font-weight: 600;
+    }
+    
+    .results-table .highlight-row {
+      background-color: var(--highlight-bg);
+    }
+    
+    .results-table .delta-row {
+      background-color: var(--delta-bg);
+    }
+    
+    .results-table .indent {
+      padding-left: 32px;
+    }
+    
+    .results-table .divider-top {
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .results-table .divider-bottom {
+      border-bottom: 2px solid #333;
+    }
+    
+    .results-table .small-text {
+      font-size: 0.9em;
+    }
+    
+    .results-table .tiny-text {
+      font-size: 0.85em;
+    }
+    
+    .results-table .delta-label {
+      color: #666;
+      font-style: italic;
+    }
+    
+    .results-table .positive {
+      color: #008000;
+    }
+    
+    .results-table .positive-bold {
+      color: #008000;
+      font-weight: bold;
+    }
+    
+    .results-table .negative {
+      color: #c80000;
+    }
+    
+    .results-table .bg-gray {
+      background-color: #f5f5f5;
+    }
+    
+    .results-table .bg-orange {
+      background-color: #fff4e6;
+    }
+    
+    .results-table .bg-yellow {
+      background-color: #fffbe6;
+    }
+    
+    .results-table tbody tr:hover {
+      background-color: #fafafa;
+    }
+    
+    .results-table .highlight-row:hover {
+      background-color: #d6e9ff;
+    }
+    
+    .results-table .delta-row:hover {
+      background-color: #ececec;
+    }
+    
+    figcaption {
+      font-size: 0.9rem;
+      color: var(--secondary-color);
+      margin-top: 1rem;
+      line-height: 1.6;
+      text-align: left;
+    }
+    
+    figcaption strong {
+      color: var(--text-color);
+    }
+    
+    .key-findings {
+      background-color: #f9f9f9;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 2rem 0;
+    }
+    
+    .key-findings h3 {
+      font-family: 'Roboto Slab', serif;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .key-findings ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .key-findings li {
+      margin-bottom: 0.8rem;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    
+    .key-findings li:before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #0066cc;
+      font-weight: bold;
+    }
+    
+    .bibtex-section {
+      background-color: #f4f4f4;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-top: 3rem;
+    }
+    
+    .bibtex-section h2 {
+      font-family: 'Roboto Slab', serif;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .bibtex-section pre {
+      background-color: #fff;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+    
+    footer {
+      margin-top: 4rem;
+      padding: 2rem 0;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--secondary-color);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-main">
+    <!-- Title Section -->
+    <div class="text-center">
+      <h1 class="paper-title">
+        <span class="title-cursive">Mull-</span><span class="title-bold">Tokens:</span><br>
+        Modality-Agnostic Latent Thinking
+      </h1>
+      
+      <div class="authors">
+        <a href="https://arijitray1993.github.io/">Arijit Ray</a><sup class="sup-1">1</sup><sup>,</sup><sup class="sup-4">4</sup>,
+        <a href="https://scholar.google.com/citations?user=Dr_TwpwAAAAJ&hl=en">Ahmed Abdelkader</a><sup class="sup-1">1</sup>,
+        <a href="https://chengzhi-mao.github.io/">Chengzhi Mao</a><sup class="sup-1">1</sup>,
+        <a href="https://bryanplummer.com/">Bryan A. Plummer</a><sup class="sup-4">4</sup>,
+        <a href="http://ai.bu.edu/ksaenko.html">Kate Saenko</a><sup class="sup-4">4</sup>,
+        <a href="https://ranjaykrishna.com/index.html">Ranjay Krishna</a><sup class="sup-2">2</sup>,
+        <a href="https://scholar.google.com/citations?user=5JlEyTAAAAAJ&hl=en">Leonidas Guibas</a><sup class="sup-1">1</sup><sup>,</sup><sup class="sup-3">3</sup>,
+        <a href="https://l2ior.github.io/">Wen-Sheng Chu</a><sup class="sup-1">1</sup>
+      </div>
+      
+      <div class="affiliations">
+        <span class="affiliation"><sup class="aff-1">1</sup>Google</span>
+        <span class="affiliation"><sup class="aff-2">2</sup>University of Washington</span>
+        <span class="affiliation"><sup class="aff-3">3</sup>Stanford University</span>
+        <span class="affiliation"><sup class="aff-4">4</sup>Boston University</span>
+      </div>
+      
+      <div class="paper-links">
+        <a href="#"><i class="fas fa-file-pdf"></i>Paper</a>
+        <a href="#"><i class="ai ai-arxiv"></i>arXiv</a>
+        <a href="#"><i class="fab fa-github"></i>Code</a>
+      </div>
+    </div>
+    
+    <!-- Teaser Figure -->
+    <figure class="teaser-figure">
+      <video autoplay loop muted playsinline>
+        <source src="webpage/images/MullTokensVideo.mp4" type="video/mp4">
+        <source src="webpage/images/MullTokensVideo.m4v" type="video/mp4">
+        <source src="webpage/images/MullTokensVideo.webm" type="video/webm">
+        <!-- Fallback to GIF if video not supported -->
+        <img src="webpage/images/MullTokensVideo.gif" alt="Mull-Tokens visualization showing modality-agnostic latent thinking">
+      </video>
+      <figcaption class="teaser-caption">
+        <strong>Figure 1: Mull-Tokens enable modality-agnostic latent thinking.</strong> Our approach uses latent tokens that can hold intermediate reasoning information in either image or text modalities, allowing models to think through spatial reasoning problems more effectively than text-only or image-only approaches.
+      </figcaption>
+    </figure>
+    
+    <!-- Abstract -->
+    <div class="abstract">
+      <h2>Abstract</h2>
+      <p>
+        Reasoning goes beyond language; the real world requires reasoning about space, time, affordances, and much more that words alone cannot convey. Existing multimodal models exploring the potential of <em>reasoning with images</em> are brittle and do not scale. They rely on calling specialist tools, costly generation of images, or handcrafted datasets.
+      </p>
+      <p>
+        We offer a simpler alternative — <strong>Mull-Tokens</strong> — latent tokens that can be pre-trained to hold intermediate information in either image or text modalities so as to think towards the correct answer. We investigate best practices to train Mull-Tokens inspired by latent reasoning frameworks. We first train Mull-Tokens using supervision from interleaved text-image traces, and then fine-tune without any supervision by only using the final answers.
+      </p>
+      <p>
+        Across four challenging spatial reasoning benchmarks involving tasks such as solving puzzles and taking different perspectives, we demonstrate that Mull-Tokens improve upon several baselines utilizing text-only reasoning or interleaved image-text reasoning, achieving a <strong>+3% average improvement</strong> and up to <strong>+16%</strong> on a puzzle solving reasoning-heavy split compared to our strongest baseline. Adding to conversations around challenges in grounding textual and visual reasoning, Mull-Tokens offers a simple solution to implicitly think in multiple modalities.
+      </p>
+    </div>
+
+    <!-- Approach Section -->
+    <h2 class="section-title">Approach</h2>
+    
+    <figure class="approach-figure">
+      <img src="webpage/images/mmlatent_training.png" alt="Mull-Tokens training pipeline showing two-stage approach">
+      <figcaption>
+        <strong>Figure 2: Mull-Tokens training pipeline.</strong> Our Mull-Tokens training involves two stages inspired by approaches in latent reasoning. We first pre-train/warm-up our Mull-Tokens to hold both image and text modalities depending on the context image/video and query. Next, the model free-form optimizes these Mull-Tokens to achieve the final correct answer. We see that pre-training the Mull-Tokens to hold both image and text reasoning traces is key, as opposed to using them simply as extra compute without such pretraining or using text alone.
+      </figcaption>
+    </figure>
+    
+    <!-- Results Section -->
+    <h2 class="section-title">Results</h2>
+
+    <!-- Key Findings -->
+    <div class="key-findings">
+      <h3>Key Contributions</h3>
+      <ul>
+        <li><strong>Effective modality-agnostic thinking paradigm:</strong> Mull-Tokens improve upon the base model by 9% overall with up to 16% gains on reasoning-heavy splits, while being faster than existing works that produce verbose thoughts or generate explicit images as intermediate reasoning steps.</li>
+        <li><strong>Superior to explicit modality switching:</strong> Our approach achieves 4% improvement over the latest prior work on interleaving visual thoughts with text based on explicit switching between the two modalities, establishing the superiority of our modality-agnostic approach.</li>
+        <li><strong>Multimodal training is essential:</strong> Extensive ablations identify the best design choices for integrating visual thoughts with text reasoning, establishing the necessity of multimodal (joint visual and textual) data for training Mull-Tokens—simply using latent tokens with text only or extra compute without multimodal anchoring doesn't suffice.</li>
+      </ul>
+    </div>
+    
+    
+    <h3 class="subsection-title">Mull-Tokens are effective for visual reasoning.</h3>
+    
+    <div class="responsive-table-wrapper">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th class="left divider-bottom">Model</th>
+            <th colspan="7" class="center divider-bottom bg-gray">BLINK</th>
+            <th class="center divider-bottom">SAT-R</th>
+            <th colspan="2" class="center divider-bottom bg-orange">VSI</th>
+            <th class="center divider-bottom">ERQA</th>
+            <th class="center divider-bottom">Avg(All)</th>
+          </tr>
+          <tr class="divider-bottom">
+            <th class="left"></th>
+            <th class="center compact-cell tiny-text bg-gray">MV</th>
+            <th class="center compact-cell tiny-text bg-gray">RelDep</th>
+            <th class="center compact-cell tiny-text bg-gray">SpRel</th>
+            <th class="center compact-cell tiny-text bg-gray">Jig</th>
+            <th class="center compact-cell tiny-text bg-gray">IQT</th>
+            <th class="center compact-cell tiny-text bg-gray">Avg</th>
+            <th class="center compact-cell tiny-text bg-gray">Reas</th>
+            <th class="center compact-cell tiny-text"></th>
+            <th class="center compact-cell tiny-text bg-orange">Avg</th>
+            <th class="center compact-cell tiny-text bg-orange">Reas</th>
+            <th class="center compact-cell tiny-text"></th>
+            <th class="center compact-cell tiny-text"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Baseline -->
+          <tr>
+            <td class="compact-cell-8">a. Qwen2.5-VL (7B)</td>
+            <td class="center compact-cell">39.00</td>
+            <td class="center compact-cell">61.29</td>
+            <td class="center compact-cell"><strong>92.38</strong></td>
+            <td class="center compact-cell">58.66</td>
+            <td class="center compact-cell">25.33</td>
+            <td class="center compact-cell">55.33</td>
+            <td class="center compact-cell">41.00</td>
+            <td class="center compact-cell">59.00</td>
+            <td class="center compact-cell">23.96</td>
+            <td class="center compact-cell">22.96</td>
+            <td class="center compact-cell"><strong>38.91</strong></td>
+            <td class="center compact-cell">44.30</td>
+          </tr>
+          
+          <!-- DirAns FT -->
+          <tr class="divider-top">
+            <td class="compact-cell-8">b. + DirAns FT</td>
+            <td class="center compact-cell">57.14</td>
+            <td class="center compact-cell"><strong>87.09</strong></td>
+            <td class="center compact-cell">74.12</td>
+            <td class="center compact-cell">58.66</td>
+            <td class="center compact-cell">30.00</td>
+            <td class="center compact-cell">61.40</td>
+            <td class="center compact-cell">48.60</td>
+            <td class="center compact-cell">71.66</td>
+            <td class="center compact-cell">32.40</td>
+            <td class="center compact-cell">30.65</td>
+            <td class="center compact-cell">38.00</td>
+            <td class="center compact-cell">50.87</td>
+          </tr>
+          
+          <!-- TextCoT FT -->
+          <tr class="section-header">
+            <td class="compact-cell-8" colspan="13"><strong>Text-Reasoning Baselines</strong></td>
+          </tr>
+          <tr>
+            <td class="compact-cell-8">c. + TextCoT FT</td>
+            <td class="center compact-cell">53.38</td>
+            <td class="center compact-cell">74.19</td>
+            <td class="center compact-cell">67.83</td>
+            <td class="center compact-cell">69.30</td>
+            <td class="center compact-cell">25.33</td>
+            <td class="center compact-cell">58.01</td>
+            <td class="center compact-cell">49.34</td>
+            <td class="center compact-cell">68.33</td>
+            <td class="center compact-cell">30.47</td>
+            <td class="center compact-cell">31.04</td>
+            <td class="center compact-cell">38.78</td>
+            <td class="center compact-cell">48.90</td>
+          </tr>
+          <tr class="delta-row">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell negative">-3.76</td>
+            <td class="center compact-cell negative">-12.90</td>
+            <td class="center compact-cell negative">-6.29</td>
+            <td class="center compact-cell positive">+10.64</td>
+            <td class="center compact-cell negative">-4.67</td>
+            <td class="center compact-cell negative">-3.39</td>
+            <td class="center compact-cell positive">+0.74</td>
+            <td class="center compact-cell negative">-3.33</td>
+            <td class="center compact-cell negative">-1.93</td>
+            <td class="center compact-cell positive">+0.39</td>
+            <td class="center compact-cell positive">+0.78</td>
+            <td class="center compact-cell negative">-1.97</td>
+          </tr>
+          
+          <!-- GRPO -->
+          <tr>
+            <td class="compact-cell-8 indent">+ GRPO</td>
+            <td class="center compact-cell">54.88</td>
+            <td class="center compact-cell">71.77</td>
+            <td class="center compact-cell">69.23</td>
+            <td class="center compact-cell">72.00</td>
+            <td class="center compact-cell">25.33</td>
+            <td class="center compact-cell">58.64</td>
+            <td class="center compact-cell">50.74</td>
+            <td class="center compact-cell">69.00</td>
+            <td class="center compact-cell">30.34</td>
+            <td class="center compact-cell">30.15</td>
+            <td class="center compact-cell">36.00</td>
+            <td class="center compact-cell">48.50</td>
+          </tr>
+          <tr class="delta-row">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell negative">-2.26</td>
+            <td class="center compact-cell negative">-15.32</td>
+            <td class="center compact-cell negative">-4.89</td>
+            <td class="center compact-cell positive">+13.34</td>
+            <td class="center compact-cell negative">-4.67</td>
+            <td class="center compact-cell negative">-2.76</td>
+            <td class="center compact-cell positive">+2.14</td>
+            <td class="center compact-cell negative">-2.66</td>
+            <td class="center compact-cell negative">-2.06</td>
+            <td class="center compact-cell negative">-0.50</td>
+            <td class="center compact-cell negative">-2.00</td>
+            <td class="center compact-cell negative">-2.37</td>
+          </tr>
+          
+          <!-- Interleave Im-Txt -->
+          <tr class="section-header">
+            <td class="compact-cell-8" colspan="13"><strong>Interleaved Image-Text Reasoning</strong></td>
+          </tr>
+          <tr>
+            <td class="compact-cell-8">e. + Interleave Im-Txt</td>
+            <td class="center compact-cell">57.14</td>
+            <td class="center compact-cell">69.36</td>
+            <td class="center compact-cell">75.52</td>
+            <td class="center compact-cell">68.67</td>
+            <td class="center compact-cell">25.33</td>
+            <td class="center compact-cell">59.20</td>
+            <td class="center compact-cell">50.38</td>
+            <td class="center compact-cell">74.00</td>
+            <td class="center compact-cell">30.27</td>
+            <td class="center compact-cell">32.96</td>
+            <td class="center compact-cell">38.50</td>
+            <td class="center compact-cell">50.49</td>
+          </tr>
+          <tr class="delta-row">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell">+0.00</td>
+            <td class="center compact-cell negative">-17.73</td>
+            <td class="center compact-cell positive">+1.40</td>
+            <td class="center compact-cell positive">+10.01</td>
+            <td class="center compact-cell negative">-4.67</td>
+            <td class="center compact-cell negative">-2.20</td>
+            <td class="center compact-cell positive">+1.78</td>
+            <td class="center compact-cell positive">+2.34</td>
+            <td class="center compact-cell negative">-2.13</td>
+            <td class="center compact-cell positive">+2.31</td>
+            <td class="center compact-cell positive">+0.50</td>
+            <td class="center compact-cell negative">-0.38</td>
+          </tr>
+          
+          <!-- Mull-Tokens -->
+          <tr class="section-header">
+            <td class="compact-cell-8" colspan="13"><strong>Mull-Tokens (Ours)</strong></td>
+          </tr>
+          <tr class="highlight-row">
+            <td class="compact-cell-8">f. + <strong>Mull-Tokens</strong></td>
+            <td class="center compact-cell">63.15</td>
+            <td class="center compact-cell">83.06</td>
+            <td class="center compact-cell">81.81</td>
+            <td class="center compact-cell">74.00</td>
+            <td class="center compact-cell"><strong>32.00</strong></td>
+            <td class="center compact-cell">66.80</td>
+            <td class="center compact-cell">56.38</td>
+            <td class="center compact-cell"><strong>77.66</strong></td>
+            <td class="center compact-cell">32.98</td>
+            <td class="center compact-cell">32.85</td>
+            <td class="center compact-cell">38.25</td>
+            <td class="center compact-cell">53.92</td>
+          </tr>
+          <tr class="delta-row">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell positive-bold">+6.01</td>
+            <td class="center compact-cell negative">-4.03</td>
+            <td class="center compact-cell positive-bold">+7.69</td>
+            <td class="center compact-cell positive-bold">+15.34</td>
+            <td class="center compact-cell positive">+2.00</td>
+            <td class="center compact-cell positive-bold">+5.40</td>
+            <td class="center compact-cell positive-bold">+7.78</td>
+            <td class="center compact-cell positive-bold">+6.00</td>
+            <td class="center compact-cell positive">+0.58</td>
+            <td class="center compact-cell positive">+2.20</td>
+            <td class="center compact-cell positive">+0.25</td>
+            <td class="center compact-cell positive-bold">+3.05</td>
+          </tr>
+          
+          <!-- Mull-Tokens + GRPO -->
+          <tr class="highlight-row">
+            <td class="compact-cell-8 indent">+ GRPO</td>
+            <td class="center compact-cell"><strong>64.66</strong></td>
+            <td class="center compact-cell">83.87</td>
+            <td class="center compact-cell">81.81</td>
+            <td class="center compact-cell"><strong>74.67</strong></td>
+            <td class="center compact-cell">30.66</td>
+            <td class="center compact-cell"><strong>67.13</strong></td>
+            <td class="center compact-cell"><strong>56.66</strong></td>
+            <td class="center compact-cell">77.00</td>
+            <td class="center compact-cell"><strong>33.51</strong></td>
+            <td class="center compact-cell"><strong>33.49</strong></td>
+            <td class="center compact-cell">38.50</td>
+            <td class="center compact-cell"><strong>54.04</strong></td>
+          </tr>
+          <tr class="delta-row divider-bottom">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell positive-bold">+7.52</td>
+            <td class="center compact-cell negative">-3.22</td>
+            <td class="center compact-cell positive-bold">+7.69</td>
+            <td class="center compact-cell positive-bold">+16.01</td>
+            <td class="center compact-cell positive">+0.66</td>
+            <td class="center compact-cell positive-bold">+5.73</td>
+            <td class="center compact-cell positive-bold">+8.06</td>
+            <td class="center compact-cell positive-bold">+5.34</td>
+            <td class="center compact-cell positive">+1.11</td>
+            <td class="center compact-cell positive">+2.84</td>
+            <td class="center compact-cell positive">+0.50</td>
+            <td class="center compact-cell positive-bold">+3.17</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <figcaption>
+        <strong>Table 1: Performance comparison across spatial reasoning benchmarks.</strong> Mull-Tokens (rows f, g) improve over direct answer finetuning (row b), and existing methods for visual reasoning tasks using text-only reasoning (rows c, d) or text-image interleaving (row e). Green values indicate improvements over the DirAns baseline, while red values indicate degradation. Best scores in each column are shown in <strong>bold</strong>.
+      </figcaption>
+    </div>
+    
+    <h3 class="subsection-title">Multimodal pretraining of the Mull-tokens is crucial for performance.</h3>
+    
+    <div class="responsive-table-wrapper">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th class="left divider-bottom">Model</th>
+            <th colspan="7" class="center divider-bottom bg-gray">BLINK</th>
+            <th class="center divider-bottom">SAT-R</th>
+            <th colspan="2" class="center divider-bottom bg-orange">VSI</th>
+            <th class="center divider-bottom">ERQA</th>
+            <th class="center divider-bottom">Avg(All)</th>
+          </tr>
+          <tr class="divider-bottom">
+            <th class="left"></th>
+            <th class="center compact-cell tiny-text bg-gray">MV</th>
+            <th class="center compact-cell tiny-text bg-gray">RelDep</th>
+            <th class="center compact-cell tiny-text bg-gray">SpRel</th>
+            <th class="center compact-cell tiny-text bg-gray">Jig</th>
+            <th class="center compact-cell tiny-text bg-gray">IQT</th>
+            <th class="center compact-cell tiny-text bg-gray">Avg</th>
+            <th class="center compact-cell tiny-text bg-gray">Reas</th>
+            <th class="center compact-cell tiny-text"></th>
+            <th class="center compact-cell tiny-text bg-orange">Avg</th>
+            <th class="center compact-cell tiny-text bg-orange">Reas</th>
+            <th class="center compact-cell tiny-text"></th>
+            <th class="center compact-cell tiny-text"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Baseline -->
+          <tr>
+            <td class="compact-cell-8">a. Qwen2.5-VL (7B)</td>
+            <td class="center compact-cell">39.00</td>
+            <td class="center compact-cell">61.29</td>
+            <td class="center compact-cell"><strong>92.38</strong></td>
+            <td class="center compact-cell">58.66</td>
+            <td class="center compact-cell">25.33</td>
+            <td class="center compact-cell">55.33</td>
+            <td class="center compact-cell">41.00</td>
+            <td class="center compact-cell">59.00</td>
+            <td class="center compact-cell">23.96</td>
+            <td class="center compact-cell">22.96</td>
+            <td class="center compact-cell"><strong>38.91</strong></td>
+            <td class="center compact-cell">44.30</td>
+          </tr>
+          
+          <!-- DirAns FT -->
+          <tr class="divider-top">
+            <td class="compact-cell-8">b. + DirAns FT</td>
+            <td class="center compact-cell">57.14</td>
+            <td class="center compact-cell"><strong>87.09</strong></td>
+            <td class="center compact-cell">74.12</td>
+            <td class="center compact-cell">58.66</td>
+            <td class="center compact-cell">30.00</td>
+            <td class="center compact-cell">61.40</td>
+            <td class="center compact-cell">48.60</td>
+            <td class="center compact-cell">71.66</td>
+            <td class="center compact-cell">32.40</td>
+            <td class="center compact-cell">30.65</td>
+            <td class="center compact-cell">38.00</td>
+            <td class="center compact-cell">50.87</td>
+          </tr>
+          
+          <!-- No warm-up -->
+          <tr class="section-header">
+            <td class="compact-cell-8" colspan="13"><strong>Ablation: Training Strategy</strong></td>
+          </tr>
+          <tr>
+            <td class="compact-cell-8">c. + No warm-up</td>
+            <td class="center compact-cell">55.63</td>
+            <td class="center compact-cell">79.03</td>
+            <td class="center compact-cell">81.11</td>
+            <td class="center compact-cell">51.33</td>
+            <td class="center compact-cell">28.66</td>
+            <td class="center compact-cell">59.15</td>
+            <td class="center compact-cell">45.21</td>
+            <td class="center compact-cell">67.33</td>
+            <td class="center compact-cell">29.77</td>
+            <td class="center compact-cell">27.38</td>
+            <td class="center compact-cell">37.75</td>
+            <td class="center compact-cell">48.50</td>
+          </tr>
+          <tr class="delta-row">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell negative">-1.51</td>
+            <td class="center compact-cell negative">-8.06</td>
+            <td class="center compact-cell positive">+6.99</td>
+            <td class="center compact-cell negative">-7.33</td>
+            <td class="center compact-cell negative">-1.34</td>
+            <td class="center compact-cell negative">-2.25</td>
+            <td class="center compact-cell negative">-3.39</td>
+            <td class="center compact-cell negative">-4.33</td>
+            <td class="center compact-cell negative">-2.63</td>
+            <td class="center compact-cell negative">-3.27</td>
+            <td class="center compact-cell negative">-0.25</td>
+            <td class="center compact-cell negative">-2.37</td>
+          </tr>
+          
+          <!-- Text warm-up -->
+          <tr>
+            <td class="compact-cell-8">d. + Text warm-up</td>
+            <td class="center compact-cell">59.39</td>
+            <td class="center compact-cell"><strong>85.48</strong></td>
+            <td class="center compact-cell">85.31</td>
+            <td class="center compact-cell">67.33</td>
+            <td class="center compact-cell">32.00</td>
+            <td class="center compact-cell">65.90</td>
+            <td class="center compact-cell">52.91</td>
+            <td class="center compact-cell">71.33</td>
+            <td class="center compact-cell">32.02</td>
+            <td class="center compact-cell"><strong>33.47</strong></td>
+            <td class="center compact-cell">38.50</td>
+            <td class="center compact-cell">51.94</td>
+          </tr>
+          <tr class="delta-row">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell positive">+2.25</td>
+            <td class="center compact-cell negative">-1.61</td>
+            <td class="center compact-cell positive-bold">+11.19</td>
+            <td class="center compact-cell positive">+8.67</td>
+            <td class="center compact-cell positive">+2.00</td>
+            <td class="center compact-cell positive">+4.50</td>
+            <td class="center compact-cell positive">+4.31</td>
+            <td class="center compact-cell negative">-0.33</td>
+            <td class="center compact-cell negative">-0.38</td>
+            <td class="center compact-cell positive">+2.82</td>
+            <td class="center compact-cell positive">+0.50</td>
+            <td class="center compact-cell positive">+1.07</td>
+          </tr>
+          
+          <!-- MM warm-up (our full method) -->
+          <tr class="highlight-row">
+            <td class="compact-cell-8">e. + MM warm-up</td>
+            <td class="center compact-cell"><strong>63.15</strong></td>
+            <td class="center compact-cell">83.06</td>
+            <td class="center compact-cell">81.81</td>
+            <td class="center compact-cell"><strong>74.00</strong></td>
+            <td class="center compact-cell"><strong>32.00</strong></td>
+            <td class="center compact-cell"><strong>66.80</strong></td>
+            <td class="center compact-cell"><strong>56.38</strong></td>
+            <td class="center compact-cell"><strong>77.66</strong></td>
+            <td class="center compact-cell"><strong>32.98</strong></td>
+            <td class="center compact-cell">32.85</td>
+            <td class="center compact-cell">38.25</td>
+            <td class="center compact-cell"><strong>53.92</strong></td>
+          </tr>
+          <tr class="delta-row divider-bottom">
+            <td class="compact-cell-8 indent delta-label">Δ (vs. DirAns)</td>
+            <td class="center compact-cell positive-bold">+6.01</td>
+            <td class="center compact-cell negative">-4.03</td>
+            <td class="center compact-cell positive-bold">+7.69</td>
+            <td class="center compact-cell positive-bold">+15.34</td>
+            <td class="center compact-cell positive">+2.00</td>
+            <td class="center compact-cell positive-bold">+5.40</td>
+            <td class="center compact-cell positive-bold">+7.78</td>
+            <td class="center compact-cell positive-bold">+5.99</td>
+            <td class="center compact-cell positive">+0.58</td>
+            <td class="center compact-cell positive">+2.20</td>
+            <td class="center compact-cell positive">+0.25</td>
+            <td class="center compact-cell positive-bold">+3.05</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <figcaption>
+        <strong>Table 2: Importance of multimodal warm-up.</strong> Warming up Mull-Tokens with multimodal image-text CoT (MM warm-up, row e) is crucial for performance, compared to no warm-up (row c) or text-only warm-up (row d). The multimodal pretraining enables the tokens to effectively hold both visual and textual reasoning, leading to the best overall performance across benchmarks.
+      </figcaption>
+    </div>
+    
+    
+    <h3 class="subsection-title">Mull-Tokens can be used in conjunction with interpretable text reasoning</h3>
+    
+    <figure class="qualitative-figure">
+      <img src="webpage/images/mull_qual.png" alt="Qualitative examples showing Mull-Tokens used with and without text reasoning">
+      <figcaption>
+        <strong>Figure 3: Flexible reasoning with Mull-Tokens.</strong> Mull-Tokens can be used in conjunction with text reasoning and the model can effectively decide when to also avoid using text reasoning depending on the task. For the example on the left, the model accurately uses Mull-Tokens along with some textual descriptive cues to reason about the missing piece. For the example on the right, the model decides to simply use the Mull-Tokens to directly predict the answer since textual descriptions are likely not helpful to detect camera motion.
+      </figcaption>
+    </figure>
+
+
+
+    <!-- BibTeX -->
+    <div class="bibtex-section">
+      <h2>Citation</h2>
+      <p>If you find our work useful, please consider citing:</p>
+      <pre><code>Coming soon!</code></pre>
+    </div>
+    
+    <footer>
+      © 2025 · This website is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0</a> license.
+    </footer>
+  </div>
+</body>
+</html>
