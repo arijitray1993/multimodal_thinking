@@ -127,6 +127,17 @@
       margin-right: 0.5rem;
     }
     
+    .affiliations a {
+      color: #4a4a4a;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .affiliations a:hover {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+    
     /* Match affiliation colors */
     .aff-1 { color: #e91e63; }
     .aff-2 { color: #4caf50; }
@@ -463,6 +474,7 @@
       font-size: 0.9rem;
     }
   </style>
+
 </head>
 <body>
   <div class="container-main">
@@ -485,16 +497,16 @@
       </div>
       
       <div class="affiliations">
-        <span class="affiliation"><sup class="aff-1">1</sup>Google</span>
-        <span class="affiliation"><sup class="aff-2">2</sup>University of Washington</span>
-        <span class="affiliation"><sup class="aff-3">3</sup>Stanford University</span>
-        <span class="affiliation"><sup class="aff-4">4</sup>Boston University</span>
+        <span class="affiliation"><sup class="aff-1">1</sup><a href="https://research.google/" target="_blank">Google</a></span>
+        <span class="affiliation"><sup class="aff-2">2</sup><a href="https://www.cs.washington.edu/" target="_blank">University of Washington</a></span>
+        <span class="affiliation"><sup class="aff-3">3</sup><a href="https://www.stanford.edu/" target="_blank">Stanford University</a></span>
+        <span class="affiliation"><sup class="aff-4">4</sup><a href="https://www.bu.edu/cs/" target="_blank">Boston University</a></span>
       </div>
       
       <div class="paper-links">
-        <a href="#"><i class="fas fa-file-pdf"></i>Paper</a>
-        <a href="#"><i class="ai ai-arxiv"></i>arXiv</a>
+        <a href="https://arxiv.org/abs/2512.10941"><i class="ai ai-arxiv"></i>arXiv</a>
         <a href="#"><i class="fab fa-github"></i>Code</a>
+        <a href="#">🤗 Model</a>
       </div>
     </div>
     
@@ -516,7 +528,7 @@
     <div class="abstract">
       <h2>Abstract</h2>
       <p>
-        Reasoning goes beyond language; the real world requires reasoning about space, time, affordances, and much more that words alone cannot convey. Existing multimodal models exploring the potential of <em>reasoning with images</em> are brittle and do not scale. They rely on calling specialist tools, costly generation of images, or handcrafted datasets.
+        Reasoning goes beyond language; the real world requires reasoning about space, time, affordances, and much more that words alone cannot convey. Existing multimodal models exploring the potential of <em>reasoning with images</em> are brittle and do not scale. es, and much more that words alone cannot convey. Existing multimodal models exploring the potential of reasoning with images are brittle and do not scale. They rely on calling specialist tools, costly generation of images, or handcrafted reasoning data to switch between text and image thoughts.
       </p>
       <p>
         We offer a simpler alternative — <strong>Mull-Tokens</strong> — latent tokens that can be pre-trained to hold intermediate information in either image or text modalities so as to think towards the correct answer. We investigate best practices to train Mull-Tokens inspired by latent reasoning frameworks. We first train Mull-Tokens using supervision from interleaved text-image traces, and then fine-tune without any supervision by only using the final answers.
@@ -976,7 +988,15 @@
     <div class="bibtex-section">
       <h2>Citation</h2>
       <p>If you find our work useful, please consider citing:</p>
-      <pre><code>Coming soon!</code></pre>
+      <pre><code>@misc{ray2025mulltokensmodalityagnosticlatentthinking,
+      title={Mull-Tokens: Modality-Agnostic Latent Thinking}, 
+      author={Arijit Ray and Ahmed Abdelkader and Chengzhi Mao and Bryan A. Plummer and Kate Saenko and Ranjay Krishna and Leonidas Guibas and Wen-Sheng Chu},
+      year={2025},
+      eprint={2512.10941},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2512.10941}, 
+}</code></pre>
     </div>
     
     <footer>
