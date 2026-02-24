@@ -480,6 +480,73 @@
       font-weight: bold;
     }
     
+    /* Prelude Section */
+    .prelude {
+      margin: 3rem 0;
+      padding: 0;
+      line-height: 1.8;
+    }
+
+    .prelude h2 {
+      font-family: 'Roboto Slab', serif;
+      font-size: 1.6rem;
+      margin-bottom: 1.5rem;
+      color: var(--heading-color);
+    }
+
+    .prelude p {
+      margin-bottom: 1.2rem;
+      font-size: 1.05rem;
+    }
+
+    .prelude-example {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .prelude-example img {
+      max-width: 320px;
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .prelude-example .example-text {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .prelude-question {
+      background: #f0f4ff;
+      border-left: 4px solid #0066cc;
+      padding: 1rem 1.2rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+
+    .prelude-highlight {
+      background: #fff8e1;
+      border-left: 4px solid #f59e0b;
+      padding: 1rem 1.2rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .prelude-example {
+        flex-direction: column;
+        align-items: center;
+      }
+      .prelude-example img {
+        max-width: 100%;
+      }
+    }
+
     .bibtex-section {
       background-color: #f4f4f4;
       padding: 1.5rem;
@@ -581,6 +648,44 @@
       </p>
     </div>
 
+    <!-- Prelude Section -->
+    <div class="prelude">
+      <h2 class="section-title">Prelude: We don't know a template to solve visual reasoning problems.</h2>
+
+      <p>Consider this spatial reasoning question:</p>
+
+      <div class="prelude-example">
+        <img src="webpage/images/image-1d100e9.jpg" alt="A room with marked points — X marks where you sit, 12 marks the chair location">
+        <div class="example-text">
+          <div class="prelude-question">
+            If I sit near the 'X' marked point in the image and face 90&deg; to the left, will the chair (near marked 12) be to my left or right?
+          </div>
+          <p>Maybe you'd try to visualize the scene from that viewpoint&hellip;</p>
+        </div>
+      </div>
+
+      <div class="prelude-example">
+        <img src="webpage/images/image-1d100e9_2.jpg" alt="The scene viewed from the X point facing 90 degrees left — the chair is not visible">
+        <div class="example-text">
+          <div class="prelude-highlight">
+            You can't even see the chair. If we train models to follow this blueprint for reasoning, it may not always work.
+          </div>
+        </div>
+      </div>
+
+      <p>
+        Other works use purely textual thoughts &mdash; but multiple recent works show that text reasoning can actually <em>hurt</em> visual reasoning performance.
+      </p>
+
+      <p>
+        <strong>What if we let models abstractly define their own thought process for visual reasoning?</strong>
+      </p>
+
+      <p>
+        We propose <strong>Mull-Tokens</strong> &mdash; discrete tokens pretrained with multimodal chain-of-thought examples, then free-form optimized without any supervision to arrive at the correct answer.
+      </p>
+    </div>
+
     <!-- Approach Section -->
     <h2 class="section-title">Approach</h2>
     
@@ -605,8 +710,11 @@
     </div>
     
     
-    <h3 class="subsection-title">Mull-Tokens are effective for visual reasoning.</h3>
-    
+    <h3 class="subsection-title">Only 20 Mull-Tokens are effective over other reasoning techniques.</h3>
+    <div class="tldr" style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
+      Unlike text chain-of-thought or interleaved image-text thoughts that employ 1000's of tokens as rationales, only 20 Mull-Tokens are effective. They improve performance while being faster for visual reasoning tasks.
+    </div>
+
     <div class="responsive-table-wrapper">
       <table class="results-table">
         <thead>
@@ -845,7 +953,7 @@
       </figcaption>
     </div>
     
-    <h3 class="subsection-title">Multimodal pretraining of the Mull-tokens is crucial for performance.</h3>
+    <h3 class="subsection-title">Mull-Tokens are not simply extra compute: multimodal information in them is crucial.</h3>
     
     <div class="responsive-table-wrapper">
       <table class="results-table">
